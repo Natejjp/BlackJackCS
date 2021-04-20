@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-namespace Test
+namespace BlackJackCS
 {
 
     class Card
     {
-        public string Suits;
-        public string Face;
+        public string Suits { get; set; }
+        public string Face { get; set; }
         public int Value()
         {
             if (Face == "Ace")
@@ -31,20 +31,38 @@ namespace Test
             }
 
         }
+        public string Description()
+        {
+            var newDescription = $"The {Face} of {Suits}";
+            return newDescription;
+        }
 
     }
 
-    class Program
+    class Hand
     {
-        static string DisplayGreeting()
+        public List<Card> IndividualCards { get; set; } = new List<Card>();
+
+        public void Receive(Card newCard)
         {
-            Console.WriteLine("--------------------------------- ");
-            Console.Write("Would you like to play blackjack? ");
-            var answer = Console.ReadLine();
-            return answer;
+            IndividualCards.Add(newCard);
         }
 
-        static List<Card> MakeDeck()
+        public int TotalValue()
+        {
+            var total = 0;
+            foreach (var card in IndividualCards)
+            {
+                total += card.Value();
+            }
+            return total;
+        }
+
+    }
+
+    class Game
+    {
+        public void Play()
         {
             var cardSuits = new List<string>() { "Hearts", "Diamonds", "Spades", "Clubs" };
             var cardFaces = new List<string>() { "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King" };
@@ -64,12 +82,6 @@ namespace Test
                     deck.Add(mango);
                 }
             }
-            return deck;
-
-        }
-
-        static void Shuffle(List<Card> deck)
-        {
             var numberOfCards = deck.Count;
 
             for (var rightIndex = numberOfCards - 1; rightIndex >= 0; rightIndex--)
@@ -78,103 +90,132 @@ namespace Test
                 var rightCard = deck[rightIndex];
                 deck[rightIndex] = deck[leftIndex];
                 deck[leftIndex] = rightCard;
-
             }
+
+            var playerHand = new Hand();
+            var dealerHand = new Hand();
+
+            var newCard = deck[0];
+            deck.Remove(newCard);
+
+            playerHand.Receive(newCard);
+
+            newCard = deck[0];
+            deck.Remove(newCard);
+
+            playerHand.Receive(newCard);
+
+            newCard = deck[0];
+            deck.Remove(newCard);
+
+            dealerHand.Receive(newCard);
+
+            newCard = deck[0];
+            deck.Remove(newCard);
+
+            dealerHand.Receive(newCard);
+
+            var keepAsking = true;
+            while (keepAsking && playerHand.TotalValue() <= 21)
+            {
+                Console.WriteLine("Your cards are:");
+                foreach (var card in playerHand.IndividualCards)
+                {
+                    Console.WriteLine(card.Description());
+                }
+                Console.Write("Your total hand value is: ");
+                Console.WriteLine(playerHand.TotalValue());
+
+                Console.Write("Do you want to Hit or Stand? ");
+                var choice = Console.ReadLine().ToLower();
+
+                if (choice == "hit")
+                {
+                    var hitCard = deck[0];
+                    deck.Remove(hitCard);
+
+                    playerHand.Receive(hitCard);
+                }
+                else
+                {
+                    keepAsking = false;
+                }
+            }
+
+            Console.WriteLine("Your cards are: ");
+            foreach (var card in playerHand.IndividualCards)
+            {
+                Console.WriteLine(card.Description());
+            }
+            Console.Write("Your total hand value is: ");
+            Console.WriteLine(playerHand.TotalValue());
+
+            while (dealerHand.TotalValue() < 17 && playerHand.TotalValue() <= 21)
+            {
+                var newDealerCard = deck[0];
+                deck.Remove(newDealerCard);
+
+                dealerHand.Receive(newDealerCard);
+            }
+
+            Console.WriteLine("The dealer's cards are:");
+            foreach (var card in dealerHand.IndividualCards)
+            {
+                Console.WriteLine("The dealer's total hand value is: ");
+            }
+            Console.Write("The dealer's total hand value is: ");
+            Console.WriteLine(dealerHand.TotalValue());
+
+            if (playerHand.TotalValue() > 21)
+            {
+                Console.WriteLine("Dealer wins!");
+            }
+            else if (dealerHand.TotalValue() > 21)
+            {
+                Console.WriteLine("Player Wins!");
+            }
+            else if (dealerHand.TotalValue() > playerHand.TotalValue())
+            {
+                Console.WriteLine("Dealer Wins!");
+            }
+            else if (playerHand.TotalValue() > dealerHand.TotalValue())
+            {
+                Console.WriteLine("Player Wins");
+            }
+            else
+            {
+                Console.WriteLine("Tie! Dealer wins!");
+            }
+
         }
+    }
 
-
-        // *Does not work
-        // static void deal()
-        // {
-        //     var playerHand = new List<int>();
-        //     playerHand.Add($"{deck[0]}");
-        //     playerHand.Add($"{deck[1]}");
-
-        //     var dealerHand = new List<int>();
-        //     dealerHand.Add($"{deck[10]}");
-        //     dealerHand.Add($"{deck[11]}");
-
-        //     Console.WriteLine($"You have the {deck[0]} and the {deck[1]}");
-        //     Console.Write("Would you like to hit or stand? ");
-        //     var play = Console.ReadLine();
-
-        //     if (play == "hit")
-        //     {
-        //         playerHand.Add($"{deck[2]}");
-        //         Console.WriteLine($"You now have {deck[0]}, {deck[1]}, and {deck[2]}");
-        //         Console.WriteLine($"Your total is {playerHandTotal}");
-
-        //         if (playerHandTotal > 21)
-        //         {
-        //              Console.Write("You Busted! Play Again? ");
-        //              var playAgain = Console.ReadLine();
-        //                  if (playAgain == "yes")
-        //                  {
-        //                      MakeDeck();
-        //                      Shuffle(deck);
-        //                      DisplayGreeting();
-        //                      Deal() 
-        //                  } 
-        //         }
-
-        //     } else
-        //     {
-        //         Console.WriteLine($"Dealer has {deck[10]} and {deck[11]}");
-        //         Console.WriteLine($"Dealer total is {dealerHandTotal}");
-        //         if (dealerHandTotal < 17)
-        //         {
-        //              dealerHand.Add($"{deck[12]}")
-        //              if (dealerHandTotal > 21)
-        //              {
-        //                  Console.WriteLine("Dealer Busted! Winner winner chicken dinner!");
-        //                  Console.Write("Play Again? ");
-        //                  var playAgain = Console.ReadLine();
-        //                      if (playAgain == "yes")
-        //                      {
-        //                          MakeDeck();
-        //                          Shuffle(deck);
-        //                          DisplayGreeting();
-        //                          Deal(); 
-        //                      } 
-        //              }
-        //         } else 
-        //         {
-        //              if (playerHandTotal > dealerHandTotal)
-        //              {
-        //                  Console.WriteLine("Winner winner chicken dinner!);
-        //                  Console.Write("Play Again? ");
-        //                  var playAgain = ConsoleReadLine();
-        //                      if (playAgain == "yes")
-        //                      {
-        //                          MakeDeck();
-        //                          Shuffle(deck);
-        //                          DisplayGreeting();
-        //                          Deal(); 
-        //                      }
-        //              } else 
-        //                {
-        //                  Console.Write("You Busted! Play again? ");
-        //                  var playAgain = Console.ReadLine();
-        //                      if (playAgain == "yes")
-        //                      {
-        //                          MakeDeck();
-        //                          Shuffle(deck);
-        //                          DisplayGreeting();
-        //                          Deal(); 
-        //                      } 
-        //                }
-        //         }
-        //     }
-        // }
-
+    class Program
+    {
+        static string DisplayGreeting()
+        {
+            Console.WriteLine("--------------------------------- ");
+            Console.Write("Would you like to play blackjack? ");
+            var answer = Console.ReadLine();
+            return answer;
+        }
 
         static void Main(string[] args)
         {
-            var deck = new List<Card>();
-            MakeDeck();
-            Shuffle(deck);
             DisplayGreeting();
-            //  Deal();
+
+            var playerWantsToKeepGoing = true;
+
+            while (playerWantsToKeepGoing)
+            {
+                var theGame = new Game();
+                theGame.Play();
+
+                Console.Write("Want to Play Again? Y/N? ");
+                var answer = Console.ReadLine().ToLower();
+                playerWantsToKeepGoing = (answer == "Y");
+
+            }
 
         }
     }
